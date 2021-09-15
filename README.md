@@ -1,4 +1,4 @@
-# AI_Course_Final_Project
+# AI Course - Final Project
 The final project in the AI Course in Afeka Engineering Collage.
 
 A dungeon project as part of the AI Course.
