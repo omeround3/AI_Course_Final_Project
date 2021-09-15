@@ -1,7 +1,8 @@
 # AI Course - Final Project
 The final project in the AI Course in Afeka Engineering Collage.
 
-A dungeon project as part of the AI Course.
+A dungeon fighting game.
+
 ## Game Description
 - There are 2 teams made up of 3 players: 2 warriors and 1 armor bearer
 - Each team goal is to eliminate the other team
