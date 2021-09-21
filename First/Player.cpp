@@ -57,7 +57,7 @@ int Player::getMode()
 		mode = ATTACK_HEALTH_AMMU;
 		mode_str = "Health & Ammunition Mode | Need Ammunition and Health Points";
 	}
-	else if (!this->canAttack() && health_ >= this->high_health_threshold_) { 
+	else if (!this->canAttack() && health_ >= this->low_health_threshold_) { 
 		// Assistance player
 		mode = ASSISTANCE;
 		mode_str = "Assistance Mode";
@@ -145,8 +145,9 @@ void Player::hit()
 	}
 }
 
-void Player::assist(Player * other)
+bool Player::assist(Player * other)
 {
+	bool assisted = false;
 	if (other->ammunition_ < MAX_AMMUNITION)
 	{
 		int ammu_needed = MAX_AMMUNITION - other->ammunition_;
@@ -154,18 +155,29 @@ void Player::assist(Player * other)
 		{
 			other->loadAmmu(1);
 			this->ammunition_ -= 1;
+			assisted = true;
 		}
 	}
+
+	int assist_amount = 0;
 	if (other->health_ < MAX_HEALTH)
 	{
 		int health_needed = MAX_HEALTH - other->health_;
 		if (this->health_ >= this->low_health_threshold_ && health_needed > 0)
 		{
-			int assist_amount = this->health_ * 0.9;
+			assist_amount = this->health_ * 0.9;
 			other->loadHealth(assist_amount);
 			this->health_ -= assist_amount;
+			assisted = true;
 		}
 	}
+	if (assisted) 
+	{
+		cout << "[PLAYER " << this->getId() << "] Assisted Team Player: " << other->getId() << " | Transferred Health: " << assist_amount << endl;
+		cout << "[PLAYER " << this->id_ << " STATS] New Ammunition Amount: " << this->ammunition_ << " | Current Health: " << this->health_ << endl;
+		cout << "[PLAYER " << other->id_ << " STATS] New Ammunition Amount: " << other->ammunition_ << " | Current Health: " << other->health_ << endl;
+	}
+	return assisted;
 }
 
 

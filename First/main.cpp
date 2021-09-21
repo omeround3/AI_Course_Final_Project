@@ -1082,7 +1082,7 @@ bool HitEnemy(Player* p, int& team_players_alive, double length_threshold)
 	return false;
 }
 
-bool AssistFriend(Player* p, int& team_players_alive, double length_threshold)
+bool AssistFriend(Player* p, int& team_players_alive, double max_length_threshold)
 {
 	int row, col;
 	priority_queue <Point2D*, vector<Point2D*>, PointsThatCloseToSrc> pq;
@@ -1102,38 +1102,22 @@ bool AssistFriend(Player* p, int& team_players_alive, double length_threshold)
 		return false;
 	}
 	double length = calculateDistance(pq.top()->getCol(), pq.top()->getRow(), p->getX(), p->getY());
-	if (length <= length_threshold)
+	if (length <= max_length_threshold)
 	{
 		Point2D temp_point = pq.top();
 		if (p->getTeam() == TEAM_1)
 		{
 			for (int i = 0; i < PLAYERS - 1; i++)
-			{
 				if (team_1_players[i]->getX() != temp_point.getRow() && team_1_players[i]->getY() != temp_point.getCol())
-				{ 
 					if (team_1_players[i]->needsAmmunition() || team_1_players[i]->needsHealth())
-					{
-						p->assist(team_1_players[i]);
-						cout << "[PLAYER " << p->getId() << "] Assisted Team Player: " << team_1_players[i]->getId() << endl;
-						return true;
-					}
-				}
-			}
+						return p->assist(team_1_players[i]);;
 		}
 		else
 		{
 			for (int i = 0; i < PLAYERS - 1; i++)
-			{
 				if (team_2_players[i]->getX() != temp_point.getRow() && team_2_players[i]->getY() != temp_point.getCol())
-				{
 					if (team_2_players[i]->needsAmmunition() || team_2_players[i]->needsHealth())
-					{
-						p->assist(team_2_players[i]);
-						cout << "[PLAYER " << p->getId() << "] Assisted Team Player: " << team_2_players[i]->getId() << endl;
-						return true;
-					}
-				}
-			}
+						return p->assist(team_2_players[i]);
 		}
 	}
 	return false;
@@ -1246,7 +1230,7 @@ void RunGame()
 	}
 	else if (!player->canAttack() && is_friends_in_room)
 	{
-		assisted = AssistFriend(player, (player->getTeam() == TEAM_1) ? team_1_alive_count : team_2_alive_count, rand() % (30 - 5 + 1) + 5);
+		assisted = AssistFriend(player, (player->getTeam() == TEAM_1) ? team_1_alive_count : team_2_alive_count, MAX_ASSIST_DIST);
 	}
 	if (hit || assisted)
 	{

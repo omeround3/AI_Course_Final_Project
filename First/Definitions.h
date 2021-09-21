@@ -18,6 +18,7 @@ const int ASSIST = 14;
 
 const int MIN_ROOM_WIDTH = 8;
 const int MIN_ROOM_HEIGHT = 8;
+const int MAX_ASSIST_DIST = 2;
 
 const int WIDTH = 800;	// Windows Width
 const int HEIGHT = 800;	// Window Height
