@@ -52,6 +52,7 @@ Grenade* pg = nullptr;;
 bool run_bfs = false;
 const string MAP_KEY_ROOM_TRG = "roomsTrg";
 const string MAP_KEY_HIT_TRG = "hit";
+const string MAP_KEY_FRIEND_TRG = "friend";
 
 int exisiting_rooms = 0;
 int team_1_alive_count = 0;
@@ -560,7 +561,6 @@ void AddPlayer(int room_index, int identity, bool can_attack)
 	int ammu = rand() % 5 + 1;	// Random ammunition amount in range 1 to 5
 	int high_health = rand() % 50 + 30; // Random high health threshold in range from 30 to 50
 	int low_health = high_health - (rand() % 25 + 5); // Random low health threshold in range 5 to 2
-	num_players_alive++;
 	if (identity == TEAM_1) {
 		team_1_players[team_1_alive_count] = new Player(identity, row, col, num_players_alive, maze[col][row].getRoomIndex(), low_health, high_health, ammu, can_attack);
 		player_steps.push(team_1_players[team_1_alive_count]);
@@ -569,6 +569,7 @@ void AddPlayer(int room_index, int identity, bool can_attack)
 		team_2_players[team_1_alive_count] = new Player(identity, row, col, num_players_alive, maze[col][row].getRoomIndex(), low_health, high_health, ammu, can_attack);
 		player_steps.push(team_2_players[team_1_alive_count]);
 	}
+	num_players_alive++;
 
 }
 
@@ -775,7 +776,7 @@ bool IsCellToShoot(Point2D* current, Point2D* source, map<string, string> args)
 /* The function checks if it is on target map */
 bool IsCellToAssist(Point2D* current, Point2D* source, map<string, string> args)
 {
-	string space = args[MAP_KEY_HIT_TRG];
+	string space = args[MAP_KEY_FRIEND_TRG];
 	size_t found = space.find(current->toString());
 	return found != string::npos;
 }
@@ -1103,23 +1104,37 @@ bool AssistFriend(Player* p, int& team_players_alive, double length_threshold)
 	double length = calculateDistance(pq.top()->getCol(), pq.top()->getRow(), p->getX(), p->getY());
 	if (length <= length_threshold)
 	{
-		Player** tempArr = (p->getTeam() == TEAM_1 ? team_1_players : team_2_players);
-		for (int i = 0; i < PLAYERS - 1; i++)
+		/*Point2D temp_point = pq.top();
+		if (p->getTeam() == TEAM_1)
 		{
-			if (tempArr[i]->getX() == pq.top()->getRow() && tempArr[i]->getY() == pq.top()->getCol())
-			{ 
-				if (tempArr[i]->needsAmmunition() || tempArr[i]->needsHealth())
-				{
-					p->assist(tempArr[i]);
-					cout << "[PLAYER " << p->getId() << "] Assisted Team Player: " << tempArr[i]->getId() << endl;
-					return true;
+			for (int i = 0; i < PLAYERS - 1; i++)
+			{
+				if (team_1_players[i]->getX() == temp_point.getRow() && team_1_players[i]->getY() == temp_point.getCol())
+				{ 
+					if (team_1_players[i]->needsAmmunition() || team_1_players[i]->needsHealth())
+					{
+						p->assist(team_1_players[i]);
+						cout << "[PLAYER " << p->getId() << "] Assisted Team Player: " << team_1_players[i]->getId() << endl;
+						return true;
+					}
 				}
 			}
 		}
-		for each (auto player in (p->getTeam() == TEAM_1 ? team_1_players : team_2_players))
+		else
 		{
-			
-		}
+			for (int i = 0; i < PLAYERS - 1; i++)
+			{
+				if (team_2_players[i]->getX() == temp_point.getRow() && team_2_players[i]->getY() == temp_point.getCol())
+				{
+					if (team_2_players[i]->needsAmmunition() || team_2_players[i]->needsHealth())
+					{
+						p->assist(team_2_players[i]);
+						cout << "[PLAYER " << p->getId() << "] Assisted Team Player: " << team_2_players[i]->getId() << endl;
+						return true;
+					}
+				}
+			}
+		}*/
 	}
 	return false;
 }
@@ -1245,14 +1260,14 @@ void RunGame()
 	{
 		queue<Point2D*> friends = FriendsInSameRoom(player);	// Get friends queue
 		Point2D* friend_point;	// Point of friend
-		target_params[MAP_KEY_HIT_TRG] = "";
+		target_params[MAP_KEY_FRIEND_TRG] = "";
 		string space;
 		while (!friends.empty())
 		{
 			friend_point = friends.front();
 			friends.pop();
 			space = GetPlayerHitCells(friend_point);
-			target_params[MAP_KEY_HIT_TRG] += space;
+			target_params[MAP_KEY_FRIEND_TRG] += space;
 		}
 
 		target = Astar(new Point2D(player->getX(), player->getY()), target_params, trgOfEnemySameRoom);
