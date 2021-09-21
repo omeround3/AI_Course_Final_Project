@@ -566,8 +566,8 @@ void AddPlayer(int room_index, int identity, bool can_attack)
 		player_steps.push(team_1_players[team_1_alive_count]);
 	}
 	else {
-		team_2_players[team_1_alive_count] = new Player(identity, row, col, num_players_alive, maze[col][row].getRoomIndex(), low_health, high_health, ammu, can_attack);
-		player_steps.push(team_2_players[team_1_alive_count]);
+		team_2_players[team_2_alive_count] = new Player(identity, row, col, num_players_alive, maze[col][row].getRoomIndex(), low_health, high_health, ammu, can_attack);
+		player_steps.push(team_2_players[team_2_alive_count]);
 	}
 	num_players_alive++;
 
@@ -1104,12 +1104,12 @@ bool AssistFriend(Player* p, int& team_players_alive, double length_threshold)
 	double length = calculateDistance(pq.top()->getCol(), pq.top()->getRow(), p->getX(), p->getY());
 	if (length <= length_threshold)
 	{
-		/*Point2D temp_point = pq.top();
+		Point2D temp_point = pq.top();
 		if (p->getTeam() == TEAM_1)
 		{
 			for (int i = 0; i < PLAYERS - 1; i++)
 			{
-				if (team_1_players[i]->getX() == temp_point.getRow() && team_1_players[i]->getY() == temp_point.getCol())
+				if (team_1_players[i]->getX() != temp_point.getRow() && team_1_players[i]->getY() != temp_point.getCol())
 				{ 
 					if (team_1_players[i]->needsAmmunition() || team_1_players[i]->needsHealth())
 					{
@@ -1124,7 +1124,7 @@ bool AssistFriend(Player* p, int& team_players_alive, double length_threshold)
 		{
 			for (int i = 0; i < PLAYERS - 1; i++)
 			{
-				if (team_2_players[i]->getX() == temp_point.getRow() && team_2_players[i]->getY() == temp_point.getCol())
+				if (team_2_players[i]->getX() != temp_point.getRow() && team_2_players[i]->getY() != temp_point.getCol())
 				{
 					if (team_2_players[i]->needsAmmunition() || team_2_players[i]->needsHealth())
 					{
@@ -1134,7 +1134,7 @@ bool AssistFriend(Player* p, int& team_players_alive, double length_threshold)
 					}
 				}
 			}
-		}*/
+		}
 	}
 	return false;
 }

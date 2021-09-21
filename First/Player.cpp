@@ -150,19 +150,20 @@ void Player::assist(Player * other)
 	if (other->ammunition_ < MAX_AMMUNITION)
 	{
 		int ammu_needed = MAX_AMMUNITION - other->ammunition_;
-		if (this->ammunition_ >= ammu_needed)
+		if (this->ammunition_ > 0 && ammu_needed > 0)
 		{
-			other->loadAmmu(ammu_needed);
-			this->ammunition_ -= ammu_needed;
+			other->loadAmmu(1);
+			this->ammunition_ -= 1;
 		}
 	}
-	else if (other->health_ < MAX_HEALTH)
+	if (other->health_ < MAX_HEALTH)
 	{
-		int health_needed = MAX_AMMUNITION - other->health_;
-		if (this->health_ >= health_needed)
+		int health_needed = MAX_HEALTH - other->health_;
+		if (this->health_ >= this->low_health_threshold_ && health_needed > 0)
 		{
-			other->loadHealth(health_needed);
-			this->health_ -= health_needed;
+			int assist_amount = this->health_ * 0.9;
+			other->loadHealth(assist_amount);
+			this->health_ -= assist_amount;
 		}
 	}
 }

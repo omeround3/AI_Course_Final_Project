@@ -48,9 +48,9 @@ std::string Point2D::toString()
 {
 	std::string str;
 	str.append("(");
-	str.append(std::to_string(this->col_));
-	str.append(";");
 	str.append(std::to_string(this->row_));
+	str.append(";");
+	str.append(std::to_string(this->col_));
 	str.append(")");
 	return str;
 }
