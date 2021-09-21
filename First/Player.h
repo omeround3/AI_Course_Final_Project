@@ -33,6 +33,8 @@ public:
 	bool hasAmmunition();
 	bool isAlive();
 	bool canAttack();
+	bool needsAmmunition();
+	bool needsHealth();
 
 	// Setters
 	void hit();
@@ -41,7 +43,7 @@ public:
 	void gotHit(int damage);
 	void move(int x, int y);
 	void setLastRIndex(int index);
-	void assist(Player &other);
+	void assist(Player *other);
 
 private:
 	int health_, ammunition_, team_, x_, y_, id_;

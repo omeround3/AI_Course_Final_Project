@@ -69,17 +69,19 @@ bool startPlay = false;
 bool resume = false;
 
 Point2D* source = new Point2D(0, 0);
-
+Player *team_1_players[PLAYERS];
+Player *team_2_players[PLAYERS];
 
 /* Functions Signatures */
 double calculateDistance(int x, int y, int xx, int yy);
 
 vector <Cell> gray;
-Point2D* getPathToTarget(Point2D* curPos, Point2D* tarPos);
 vector<Point2D*> getNeighbors(Point2D* p);
-
-Point2D* EnemysHit(int posTeam, int x1, int y1, int x2, int y2);
 vector<Point2D*> getWalkableNeighbors(Point2D* point);
+
+Point2D* getPathToTarget(Point2D* curPos, Point2D* tarPos);
+Point2D* EnemysHit(int posTeam, int x1, int y1, int x2, int y2);
+Point2D* FriendHit(int team, int x_player, int y_player, int x, int y);
 
 string HitCellsDirection(int target1, int target2, int direction1, int direction2);
 Player* SetPlayerLocation(int location1, int location2);
@@ -555,13 +557,18 @@ void AddPlayer(int room_index, int identity, bool can_attack)
 		col--;
 	}
 	maze[col][row].setIdentity(identity);
-	Player* p = nullptr;
 	int ammu = rand() % 5 + 1;	// Random ammunition amount in range 1 to 5
 	int high_health = rand() % 50 + 30; // Random high health threshold in range from 30 to 50
-	int low_health = high_health - (rand() % 25 + 5); // Random low health threshold in range 5 to 25
-	p = new Player(identity, row, col, num_players_alive, maze[col][row].getRoomIndex(), low_health, high_health, ammu, can_attack);
+	int low_health = high_health - (rand() % 25 + 5); // Random low health threshold in range 5 to 2
 	num_players_alive++;
-	player_steps.push(p);
+	if (identity == TEAM_1) {
+		team_1_players[team_1_alive_count] = new Player(identity, row, col, num_players_alive, maze[col][row].getRoomIndex(), low_health, high_health, ammu, can_attack);
+		player_steps.push(team_1_players[team_1_alive_count]);
+	}
+	else {
+		team_2_players[team_1_alive_count] = new Player(identity, row, col, num_players_alive, maze[col][row].getRoomIndex(), low_health, high_health, ammu, can_attack);
+		player_steps.push(team_2_players[team_1_alive_count]);
+	}
 
 }
 
@@ -727,7 +734,6 @@ std::vector<std::string> SplitString(std::string strToSplit, char delimeter)
 	return str;
 }
 
-
 string GetPlayerHitCells(Point2D* p)
 {
 	string space = "";
@@ -761,6 +767,13 @@ string HitCellsDirection(int x1, int y1, int x2, int y2)
 
 /* The function checks if it is on target map */
 bool IsCellToShoot(Point2D* current, Point2D* source, map<string, string> args)
+{
+	string space = args[MAP_KEY_HIT_TRG];
+	size_t found = space.find(current->toString());
+	return found != string::npos;
+}
+/* The function checks if it is on target map */
+bool IsCellToAssist(Point2D* current, Point2D* source, map<string, string> args)
 {
 	string space = args[MAP_KEY_HIT_TRG];
 	size_t found = space.find(current->toString());
@@ -803,7 +816,7 @@ bool IsCellToShootOrHealth(Point2D* current, Point2D* source, map<string, string
 	return found != string::npos;
 }
 
-/* The function checks if the cell is an attack target */
+/* The function checks if the cell is an attack target in the same room */
 bool IsAttackTargetCell(Point2D* current, Point2D* source, map<string, string> args)
 {
 	string temp;
@@ -820,7 +833,6 @@ bool IsAttackTargetCell(Point2D* current, Point2D* source, map<string, string> a
 	}
 	return false;
 }
-
 
 bool IsAttackTargetCellHealthAmmunition(Point2D* current, Point2D* source, map<string, string> args)
 {
@@ -897,7 +909,6 @@ bool IsSurvivorNotInSameCell(Point2D* current, Point2D* source, map<string, stri
 	return false;
 }
 
-
 /* Get a vector of the alive enemies */
 vector<Player*> GetEnemies(Player* p)
 {
@@ -943,7 +954,6 @@ bool IsNeedAssistance(Point2D* current, Point2D* source, map<string, string> arg
 		return true;
 	return false;
 }
-
 
 bool IsEnemyInTheSameRoom(Player* p)
 {
@@ -1027,7 +1037,7 @@ queue<Point2D*> EnemiesInSameRoom(Player* p)
 	return result;
 }
 
-bool HitEnemy(Player* p, int& team_players_alive, double thresholdLength)
+bool HitEnemy(Player* p, int& team_players_alive, double length_threshold)
 {
 	int row, col;
 	priority_queue <Point2D*, vector<Point2D*>, PointsThatCloseToSrc> pq;
@@ -1047,7 +1057,7 @@ bool HitEnemy(Player* p, int& team_players_alive, double thresholdLength)
 		return false;
 	}
 	double length = calculateDistance(pq.top()->getCol(), pq.top()->getRow(), p->getX(), p->getY());
-	if (length <= thresholdLength)
+	if (length <= length_threshold)
 	{
 		Player* enemy = SetPlayerLocation(pq.top()->getCol(), pq.top()->getRow());
 		enemy->gotHit(CalculateDamage(length));
@@ -1067,6 +1077,49 @@ bool HitEnemy(Player* p, int& team_players_alive, double thresholdLength)
 			}
 		}
 		return true;
+	}
+	return false;
+}
+
+bool AssistFriend(Player* p, int& team_players_alive, double length_threshold)
+{
+	int row, col;
+	priority_queue <Point2D*, vector<Point2D*>, PointsThatCloseToSrc> pq;
+	source->~Point2D();
+	source = new Point2D(p->getX(), p->getY());
+	for (row = -1; row <= 1; row++)
+	{
+		for (col = -1; col <= 1; col++)
+		{
+			Point2D* el = FriendHit(p->getTeam(), p->getX(), p->getY(), row, col);
+			if (el->getRow() != -1) {
+				pq.push(el);
+			}
+		}
+	}
+	if (pq.size() == 0) {
+		return false;
+	}
+	double length = calculateDistance(pq.top()->getCol(), pq.top()->getRow(), p->getX(), p->getY());
+	if (length <= length_threshold)
+	{
+		Player** tempArr = (p->getTeam() == TEAM_1 ? team_1_players : team_2_players);
+		for (int i = 0; i < PLAYERS - 1; i++)
+		{
+			if (tempArr[i]->getX() == pq.top()->getRow() && tempArr[i]->getY() == pq.top()->getCol())
+			{ 
+				if (tempArr[i]->needsAmmunition() || tempArr[i]->needsHealth())
+				{
+					p->assist(tempArr[i]);
+					cout << "[PLAYER " << p->getId() << "] Assisted Team Player: " << tempArr[i]->getId() << endl;
+					return true;
+				}
+			}
+		}
+		for each (auto player in (p->getTeam() == TEAM_1 ? team_1_players : team_2_players))
+		{
+			
+		}
 	}
 	return false;
 }
@@ -1103,6 +1156,24 @@ Point2D* EnemysHit(int team, int x_player, int y_player, int x, int y)
 	return enemy_location;
 }
 
+Point2D* FriendHit(int team, int x_player, int y_player, int x, int y)
+{
+	Point2D* friend_location = new Point2D(-1, -1);
+	x_player += x;
+	y_player += y;
+	while (maze[y_player][x_player].getIdentity() == SPACE)
+	{
+		x_player += x;
+		y_player += y;
+	}
+	if (maze[y_player][x_player].getIdentity() == team)
+	{
+		friend_location->setCol(x_player);
+		friend_location->setRow(y_player);
+	}
+	return friend_location;
+}
+
 void RunGame()
 {
 	Player* player = player_steps.front();
@@ -1118,7 +1189,7 @@ void RunGame()
 	else if (player->getMode() == ATTACK_AND_HEALTH) {
 		trgOfEnemySameRoom = IsCellToShootOrHealth;
 		trgOfEnemyNSameRoom = IsAttackTargetCellHealth;
-		path_function = AmmunitionHealthCost;	//Attack & Health 
+		path_function = AmmunitionHealthCost;	// Attack & Health 
 	}
 	else if (player->getMode() == ATTACK_HEALTH_AMMU) {
 		trgOfEnemySameRoom = IsCellToShootOrAmmuHealth;
@@ -1128,7 +1199,7 @@ void RunGame()
 	else if (player->getMode() == NEED_AMMUNITION) {
 		trgOfEnemySameRoom = IsNeedAmmunition;
 		trgOfEnemyNSameRoom = IsNeedAmmunition;
-		path_function = AmmunitionCost;	//Ammou
+		path_function = AmmunitionCost;		// Ammou
 	}
 	else if (player->getMode() == ATTACK_AND_AMMU) {
 		trgOfEnemySameRoom = IsCellToShootOrAmmu;
@@ -1139,7 +1210,7 @@ void RunGame()
 	else if (player->getMode() == ASSISTANCE) {
 		trgOfEnemySameRoom = IsNeedAssistance;
 		trgOfEnemyNSameRoom = IsNeedAssistance;;
-		path_function = AmmunitionCost;	//Ammou
+		path_function = AssistanceCost;		// Assistance
 	}
 	else {
 		trgOfEnemySameRoom = IsSurvivorInSameCell;
@@ -1151,14 +1222,18 @@ void RunGame()
 	if (!player->isAlive()) {
 		return;
 	}
-	bool hit = false;
+	bool hit = false, assisted = false;
 	is_enemy_in_room = IsEnemyInTheSameRoom(player);
 	is_friends_in_room = IsFriendInTheSameRoom(player);
 	if (player->hasAmmunition() && is_enemy_in_room && player->canAttack())
 	{
 		hit = HitEnemy(player, (player->getTeam() == TEAM_1) ? team_2_alive_count : team_1_alive_count, rand() % (30 - 5 + 1) + 5);
 	}
-	if (hit)
+	else if (!player->canAttack() && is_friends_in_room)
+	{
+		assisted = AssistFriend(player, (player->getTeam() == TEAM_1) ? team_1_alive_count : team_2_alive_count, rand() % (30 - 5 + 1) + 5);
+	}
+	if (hit || assisted)
 	{
 		player_steps.push(player);
 		return;
@@ -1196,9 +1271,23 @@ void RunGame()
 		}
 		target = Astar(new Point2D(player->getX(), player->getY()), target_params, trgOfEnemySameRoom);
 	}
+	else if (!player->canAttack()) {
+		vector<Player*> friends = GetFriends(player);
+		for each (Player * p_friend in friends)
+		{
+			int trgRoomIndex = maze[p_friend->getY()][p_friend->getX()].getRoomIndex();
+			if (trgRoomIndex == -1) {
+				target_params[MAP_KEY_ROOM_TRG] += std::to_string(p_friend->getLastRIndex()) + ",";
+			}
+			else {
+				target_params[MAP_KEY_ROOM_TRG] += std::to_string(trgRoomIndex) + ",";
+			}
+		}
+		target = Astar(new Point2D(player->getX(), player->getY()), target_params, trgOfEnemyNSameRoom);
+	}
 	else {
-		vector<Player*> e = GetEnemies(player);
-		for each (Player * enemy in e)
+		vector<Player*> enemies = GetEnemies(player);
+		for each (Player * enemy in enemies)
 		{
 			int trgRoomIndex = maze[enemy->getY()][enemy->getX()].getRoomIndex();
 			if (trgRoomIndex == -1) {

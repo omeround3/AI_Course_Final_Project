@@ -48,7 +48,7 @@ int Player::getTeam()
 int Player::getMode()
 {
 	int mode = -1;
-	string mode_str = "Assistance";
+	string mode_str = "Mode Not Set";
 	if (health_ < this->low_health_threshold_) {
 		mode = SURVIVE;
 		mode_str = "Survival Mode";
@@ -57,12 +57,10 @@ int Player::getMode()
 		mode = ATTACK_HEALTH_AMMU;
 		mode_str = "Health & Ammunition Mode | Need Ammunition and Health Points";
 	}
-	else if (!this->canAttack()) { // Assistance player
-		if (this->health_ == MAX_HEALTH)
-		{
-			mode = ASSISTANCE;
-			mode_str = "Assistance Mode";
-		}
+	else if (!this->canAttack() && health_ >= this->high_health_threshold_) { 
+		// Assistance player
+		mode = ASSISTANCE;
+		mode_str = "Assistance Mode";
 	}
 	else if (ammunition_ == 0) {
 		mode = NEED_AMMUNITION;
@@ -124,6 +122,16 @@ bool Player::canAttack()
 	return this->can_attack_;
 }
 
+bool Player::needsAmmunition()
+{
+	return (this->ammunition_ < this->ammunition_threshold_);
+}
+
+bool Player::needsHealth()
+{
+	return (this->health_ < this->high_health_threshold_);
+}
+
 void Player::hit()
 {
 	if (ammunition_ > 0)
@@ -137,23 +145,23 @@ void Player::hit()
 	}
 }
 
-void Player::assist(Player& other)
+void Player::assist(Player * other)
 {
-	if (other.ammunition_ < MAX_AMMUNITION)
+	if (other->ammunition_ < MAX_AMMUNITION)
 	{
-		int ammu_needed = MAX_AMMUNITION - other.ammunition_;
+		int ammu_needed = MAX_AMMUNITION - other->ammunition_;
 		if (this->ammunition_ >= ammu_needed)
 		{
-			other.loadAmmu(ammu_needed);
+			other->loadAmmu(ammu_needed);
 			this->ammunition_ -= ammu_needed;
 		}
 	}
-	else if (other.health_ < MAX_HEALTH)
+	else if (other->health_ < MAX_HEALTH)
 	{
-		int health_needed = MAX_AMMUNITION - other.health_;
+		int health_needed = MAX_AMMUNITION - other->health_;
 		if (this->health_ >= health_needed)
 		{
-			other.loadAmmu(health_needed);
+			other->loadHealth(health_needed);
 			this->health_ -= health_needed;
 		}
 	}
