@@ -1,19 +1,22 @@
 /*
 	Contributors
 		- Omer Lev-Ron 204573067
-		- Tal Hagag
+		- Tal Hagag	313160921
+
 	A dungeon project as part of the AI Course.
 	Game Description
-		- There are 2 teams made up of 3 players: 2 warriors and 1 armor bearer
+		- There are 2 teams made up of 3 players: 2 warriors and 1 armor bearer (assistance player)
 		- Each team goal is to eliminate the other team
 		- The players are moving inside a dungeon built from different rooms with transitions between them
 		- Health Points and a Ammunition is randomly added to the rooms
 		- Each player gets a starting amount of ammunition and health points
+		
 	Players Goal:
 		- Fight against the opponents of the other team (search for them)
 		- Survive, which means to stop fighting if the the health points level is low
 		- Look for ammunition if the amount is under a specific threshold
-		- Increase health points if necessary (undert a certain threshold)
+		- Increase health points if necessary (under a certain threshold)
+		- The assistance player can't attack and he's responsible to assist the other players with health points and ammuniton
 */
 
 // System and builtin includes
@@ -49,7 +52,6 @@ Room rooms[NUM_ROOMS]; // An array to hold all the rooms
 Bullet* pb = nullptr;
 Grenade* pg = nullptr;;
 
-bool run_bfs = false;
 const string MAP_KEY_ROOM_TRG = "roomsTrg";
 const string MAP_KEY_HIT_TRG = "hit";
 const string MAP_KEY_FRIEND_TRG = "friend";
@@ -67,6 +69,7 @@ queue <Point2D*> ammunition;
 
 bool defineTeams = false;
 bool startPlay = false;
+bool run_bfs = false;
 bool resume = false;
 
 Point2D* source = new Point2D(0, 0);
@@ -1220,7 +1223,7 @@ void RunGame()
 	}
 	else if (player->getMode() == ASSISTANCE) {
 		trgOfEnemySameRoom = IsCellToAssistOrAmmuHealth;
-		trgOfEnemyNSameRoom = IsAttackTargetCellHealthAmmunition;;
+		trgOfEnemyNSameRoom = IsCellToAssistOrAmmuHealth;;
 		path_function = AssistanceCost;		// Assistance
 	}
 	else {
@@ -1228,7 +1231,7 @@ void RunGame()
 		trgOfEnemyNSameRoom = IsSurvivorNotInSameCell;
 		path_function = HealthCost;
 	}
-	bool is_enemy_in_room = false, is_friends_in_room = false;;
+	bool is_enemy_in_room = false, is_friends_in_room = false;
 	player_steps.pop();
 	if (!player->isAlive()) {
 		return;
@@ -1430,6 +1433,11 @@ void mouse(int button, int state, int x, int y)
 		//	pb = new Bullet(xx, yy); // we shall need a bullet to fire it from riffle (only wall or enemy body will stop it)
 		pg = new Grenade(xx, yy); // in the game the granade's bullets are flying to the limited distance
 	}
+
+	if (button = GLUT_MIDDLE_BUTTON && state == GLUT_DOWN)
+		startPlay = false;
+	else
+		startPlay = true;
 }
 
 void main(int argc, char* argv[])
