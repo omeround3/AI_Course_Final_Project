@@ -4,7 +4,7 @@ The final project in the AI Course in Afeka Engineering Collage.
 A dungeon fighting game.
 
 ## Game Description
-- There are 2 teams made up of 3 players: 2 warriors and 1 armor bearer
+- There are 2 teams made up of 3 players: 2 warriors and 1 armor bearer (assistance player)
 - Each team goal is to eliminate the other team
 - The players are moving inside a dungeon built from different rooms with transitions between them
 - Health Points and a Ammunition is randomly added to the rooms
@@ -13,4 +13,5 @@ A dungeon fighting game.
 - Fight against the opponents of the other team (search for them)
 - Survive, which means to stop fighting if the the health points level is low
 - Look for ammunition if the amount is under a specific threshold
-- Increase health points if necessary (undert a certain threshold)
+- Increase health points if necessary (under a certain threshold)
+- The assistance player can't attack and he's responsible to assist the other players with health points and ammuniton
