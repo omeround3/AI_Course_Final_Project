@@ -793,6 +793,18 @@ bool IsCellToShootOrAmmuHealth(Point2D* current, Point2D* source, map<string, st
 	return found != string::npos;
 }
 
+/* The function checks if the cell is a ammunition or health cell, if not, then if it is on friend map */
+bool IsCellToAssistOrAmmuHealth(Point2D* current, Point2D* source, map<string, string> args)
+{
+	int i = current->getRow();
+	int j = current->getCol();
+	if (maze[i][j].getIdentity() == AMMUNITION || maze[i][j].getIdentity() == HEALTH)
+		return true;
+	string spots = args[MAP_KEY_FRIEND_TRG];
+	size_t found = spots.find(current->toString());
+	return found != string::npos;
+}
+
 /* The function checks if the cell is a ammunition cell, if not, then if it is on target map */
 bool IsCellToShootOrAmmu(Point2D* current, Point2D* source, map<string, string> args)
 {
@@ -1207,8 +1219,8 @@ void RunGame()
 
 	}
 	else if (player->getMode() == ASSISTANCE) {
-		trgOfEnemySameRoom = IsNeedAssistance;
-		trgOfEnemyNSameRoom = IsNeedAssistance;;
+		trgOfEnemySameRoom = IsCellToAssistOrAmmuHealth;
+		trgOfEnemyNSameRoom = IsAttackTargetCellHealthAmmunition;;
 		path_function = AssistanceCost;		// Assistance
 	}
 	else {

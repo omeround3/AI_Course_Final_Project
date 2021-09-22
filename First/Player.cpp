@@ -199,15 +199,18 @@ void Player::loadHealth(int amount)
 
 void Player::gotHit(int damage)
 {
-	health_ -= damage;
+	if (this->health_ -= damage < 0)
+		this->health_ = 0;
+	else
+		this->health_ -= damage;
 	
-	if (health_ <= 0)
+	if (this->health_ <= 0)
 	{
 		cout << "[PLAYER " << this->id_ << " STATUS] Got hit by " << damage << " damage | Player is DEAD"<< endl;
 		alive_ = false;
 	}
 	else
-		cout << "[PLAYER " << this->id_ << " STATUS] Got hit by " << damage << " damage | Current Health: " << health_ << endl;
+		cout << "[PLAYER " << this->id_ << " STATUS] Got hit by " << damage << " damage | Current Health: " << this->health_ << endl;
 }
 
 void Player::move(int x, int y)
